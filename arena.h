@@ -10,6 +10,13 @@
 
 #ifndef FLUENT_LIBC_ARENA_LIBRARY_H
 #define FLUENT_LIBC_ARENA_LIBRARY_H
+
+// ============= FLUENT LIB C++ =============
+#if defined(__cplusplus)
+extern "C"
+{
+#endif
+
 #ifndef FLUENT_LIBC_RELEASE
 #   include <types.h> // fluent_libc
 #   include <vector.h> // fluent_libc
@@ -191,5 +198,10 @@ static inline void destroy_arena(arena_allocator_t *arena)
     // Free the arena allocator itself
     free(arena);
 }
+
+// ============= FLUENT LIB C++ =============
+#if defined(__cplusplus)
+}
+#endif
 
 #endif //FLUENT_LIBC_ARENA_LIBRARY_H
