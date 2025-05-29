@@ -160,6 +160,15 @@ static inline void *arena_malloc(arena_allocator_t *arena)
     return ptr;
 }
 
+/**
+ * \brief Destroys an arena allocator and frees all associated memory.
+ *
+ * This function releases all memory chunks managed by the arena allocator,
+ * destroys the vector of chunks, and finally frees the arena allocator itself.
+ * After calling this function, the arena pointer becomes invalid.
+ *
+ * \param arena Pointer to the arena allocator (`arena_allocator_t`) to destroy.
+ */
 static inline void destroy_arena(arena_allocator_t *arena)
 {
     // Check if the arena is NULL
