@@ -110,8 +110,21 @@ static inline void *arena_malloc(arena_allocator_t *arena)
             return NULL; // Return NULL if memory allocation fails
         }
 
+        // Allocate a new arena_t structure for the chunk
+        arena_t *new_chunk = (arena_t *)malloc(sizeof(arena_t));
+        if (!new_chunk)
+        {
+            free(chunk); // Free the chunk memory if arena_t allocation fails
+            return NULL; // Return NULL if memory allocation fails
+        }
+
+        // Initialize the new arena
+        new_chunk->memory = chunk; // Set the memory pointer to the allocated chunk
+        new_chunk->size = arena->el_size * arena->chunk_els; // Set the size of the chunk
+        new_chunk->used = 0; // Initialize the used memory to 0
+
         // Add the new chunk to the vector of chunks
-        vec_push(arena->chunks, chunk);
+        vec_push(arena->chunks, new_chunk);
     }
 
     // Get the last chunk in the vector
