@@ -10,7 +10,119 @@
 
 #ifndef FLUENT_LIBC_ARENA_LIBRARY_H
 #define FLUENT_LIBC_ARENA_LIBRARY_H
+#ifndef FLUENT_LIBC_RELEASE
+#   include <types.h> // fluent_libc
+#   include <vector.h> // fluent_libc
+#else
+#   include <fluent/types/types.h> // fluent_libc
+#   include <fluent/vector/vector.h> // fluent_libc
+#endif
+#include <stdbool.h>
+#include <stdlib.h>
 
-void hello(void);
+/**
+ * \brief Represents a memory arena for efficient memory allocation.
+ *
+ * The arena manages a contiguous block of memory, tracking the total size and
+ * the amount of memory used. Allocations are performed linearly from the arena.
+ */
+typedef struct
+{
+    void *memory;      /**< Pointer to the allocated memory block */
+    size_t size;       /**< Size of the memory block */
+    size_t used;       /**< Amount of memory currently used */
+} arena_t;
+
+/**
+ * \brief Arena allocator managing a linked list of arena chunks.
+ *
+ * The allocator maintains the head of the chunk list and the size of each chunk,
+ * enabling efficient allocation and expansion.
+ */
+typedef struct
+{
+    vector_t *chunks;    /**< Vector of arena chunks */
+    size_t el_size;      /**< Size of each element in the arena */
+    size_t chunk_els;    /**< Number of elements in each chunk */
+} arena_allocator_t;
+
+static inline arena_allocator_t *arena_new(const size_t chunk_els, const size_t el_size)
+{
+    // Allocate memory for the arena allocator
+    arena_allocator_t *allocator = (arena_allocator_t *)malloc(sizeof(arena_allocator_t));
+
+    // Handle allocation failure
+    if (!allocator)
+    {
+        return NULL; // Return NULL if memory allocation fails
+    }
+
+    // Initialize the arena allocator
+    vector_t *v = (vector_t *)malloc(sizeof(vector_t));
+    if (!v)
+    {
+        free(allocator); // Free the allocator if vector allocation fails
+        return NULL; // Return NULL
+    }
+
+    // Initialize the vector with a capacity of 256 elements
+    // each of size el_size, and a growth factor of 1.5
+    // (Could use a linked list, but managing pointers is
+    // more expensive than using a vector)
+    vec_init(v, 30, el_size, 1.5);
+
+    allocator->chunks = v; // Initialize the vector of chunks
+    allocator->el_size = el_size; // Set the size of each element in the arena
+    allocator->chunk_els = chunk_els; // Set the number of elements in each chunk
+
+    return allocator; // Return the initialized arena allocator
+}
+
+static inline void *arena_malloc(arena_allocator_t *arena)
+{
+    // Skip if the arena is NULL
+    if (!arena)
+    {
+        return NULL; // Return NULL if the arena is not initialized
+    }
+
+    // Determine if there is enough memory in the current chunk
+    bool has_space = false;
+    if (arena->chunks->length > 0)
+    {
+        // Get the last chunk in the vector
+        const arena_t *last_chunk = vec_get(arena->chunks, arena->chunks->length - 1);
+
+        // Check if there is enough space in the last chunk
+        has_space = last_chunk->used + arena->el_size <= last_chunk->size;
+    }
+
+    // Check if there are any chunks in the arena
+    if (
+        arena->chunks->length == 0
+        || !has_space
+    )
+    {
+        // Allocate a new chunk of memory
+        void *chunk = malloc(arena->el_size * arena->chunk_els);
+        if (!chunk)
+        {
+            return NULL; // Return NULL if memory allocation fails
+        }
+
+        // Add the new chunk to the vector of chunks
+        vec_push(arena->chunks, chunk);
+    }
+
+    // Get the last chunk in the vector
+    arena_t *last_chunk = vec_get(arena->chunks, arena->chunks->length - 1);
+
+    // Return a pointer to the next available memory in the last chunk
+    void *ptr = (char *)last_chunk->memory + last_chunk->used;
+    last_chunk->used += arena->el_size; // Update the used memory in the last chunk
+
+    // Return the pointer to the allocated memory
+    return ptr;
+}
 
 #endif //FLUENT_LIBC_ARENA_LIBRARY_H
