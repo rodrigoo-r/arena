@@ -5,7 +5,7 @@ project(arena C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_library(arena STATIC arena.c)
+add_library(arena STATIC arena.c arena.h)
 
 if (NOT FLUENT_LIBC_RELEASE)
     FetchContent_Declare(
