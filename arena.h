@@ -160,17 +160,7 @@ static inline void *arena_malloc(arena_allocator_t *arena)
     return ptr;
 }
 
-/**
- * \brief Resets all chunks in the arena allocator.
- *
- * Sets the `used` field of each chunk in the arena allocator to zero,
- * making all previously allocated memory available for reuse.
- * Does not deallocate or free any memory.
- *
- * \param arena Pointer to the arena allocator (`arena_allocator_t`).
- *              If NULL, the function does nothing.
- */
-static inline void reset_arena(arena_allocator_t *arena)
+static inline void destroy_arena(arena_allocator_t *arena)
 {
     // Check if the arena is NULL
     if (!arena)
@@ -178,19 +168,19 @@ static inline void reset_arena(arena_allocator_t *arena)
         return; // Do nothing if the arena is not initialized
     }
 
-    // Reset each chunk in the vector
-    for (size_t i = 0; i < arena->chunks->length - 1; i++)
+    // Free each chunk in the vector
+    for (size_t i = 0; i < arena->chunks->length; i++)
     {
-        const arena_t *chunk = vec_get(arena->chunks, i);
+        arena_t *chunk = vec_get(arena->chunks, i);
         free(chunk->memory); // Free the memory of the chunk
-        arena->chunks->length--; // Decrease the length of the vector
+        free(chunk); // Free the arena_t structure
     }
 
-    // Get the last chunk in the vector
-    arena_t *last_chunk = vec_get(arena->chunks, arena->chunks->length - 1);
+    // Free the vector of chunks
+    vec_destroy(arena->chunks, NULL);
 
-    // Reset the used memory in the last chunk
-    last_chunk->used = 0;
+    // Free the arena allocator itself
+    free(arena);
 }
 
 #endif //FLUENT_LIBC_ARENA_LIBRARY_H
