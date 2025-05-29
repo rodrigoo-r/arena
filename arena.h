@@ -11,6 +11,58 @@
 #ifndef FLUENT_LIBC_ARENA_LIBRARY_H
 #define FLUENT_LIBC_ARENA_LIBRARY_H
 
+// ============= FLUENT LIB C =============
+// Arena Memory Allocator
+// ----------------------------------------
+// Fast, linear memory allocator using arena-style chunked allocation.
+// Avoids repeated `malloc` calls for small, fixed-size allocations.
+//
+// Ideal for:
+// - High-performance scenarios with lots of short-lived allocations
+// - Game engines, scripting systems, AST construction, etc.
+// - Avoiding fragmentation & malloc overhead
+//
+// Types Provided:
+// ----------------------------------------
+// - `arena_t`
+//   Represents a raw memory chunk tracked by the allocator.
+//
+// - `arena_allocator_t`
+//   Manages multiple `arena_t` chunks via a vector backend.
+//
+// Functions:
+// ----------------------------------------
+// arena_allocator_t *arena_new(size_t chunk_els, size_t el_size);
+//   - Initializes an arena allocator with element/chunk size.
+//
+// void *arena_malloc(arena_allocator_t *arena);
+//   - Allocates memory from the arena. Fast, non-zeroed.
+//
+// void destroy_arena(arena_allocator_t *arena);
+//   - Frees all memory associated with the arena.
+//
+// Example Usage:
+// ----------------------------------------
+//     arena_allocator_t *arena = arena_new(100, sizeof(MyStruct));
+//     MyStruct *s = (MyStruct *)arena_malloc(arena);
+//     ...
+//     destroy_arena(arena); // clean up when done
+//
+// Notes:
+// ----------------------------------------
+// - Memory from `arena_malloc` is *not* individually freeable
+// - Call `destroy_arena` to free all chunks at once
+// - Internally uses `vector_t` from fluent_libc for chunk tracking
+//
+// Dependencies:
+// ----------------------------------------
+// - fluent/types/types.h
+// - fluent/vector/vector.h
+//
+// ----------------------------------------
+// Initial revision: 2025-05-26
+// ----------------------------------------
+
 // ============= FLUENT LIB C++ =============
 #if defined(__cplusplus)
 extern "C"
