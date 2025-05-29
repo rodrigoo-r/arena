@@ -159,4 +159,21 @@ static inline void *arena_malloc(arena_allocator_t *arena)
     // Return the pointer to the allocated memory
     return ptr;
 }
+
+static inline void reset_arena(arena_allocator_t *arena)
+{
+    // Check if the arena is NULL
+    if (!arena)
+    {
+        return; // Do nothing if the arena is not initialized
+    }
+
+    // Reset each chunk in the vector
+    for (size_t i = 0; i < arena->chunks->length; i++)
+    {
+        arena_t *chunk = vec_get(arena->chunks, i);
+        chunk->used = 0; // Reset the used memory to 0
+    }
+}
+
 #endif //FLUENT_LIBC_ARENA_LIBRARY_H
