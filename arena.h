@@ -160,6 +160,16 @@ static inline void *arena_malloc(arena_allocator_t *arena)
     return ptr;
 }
 
+/**
+ * \brief Resets all chunks in the arena allocator.
+ *
+ * Sets the `used` field of each chunk in the arena allocator to zero,
+ * making all previously allocated memory available for reuse.
+ * Does not deallocate or free any memory.
+ *
+ * \param arena Pointer to the arena allocator (`arena_allocator_t`).
+ *              If NULL, the function does nothing.
+ */
 static inline void reset_arena(arena_allocator_t *arena)
 {
     // Check if the arena is NULL
