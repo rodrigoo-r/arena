@@ -88,6 +88,18 @@ static inline arena_allocator_t *arena_new(const size_t chunk_els, const size_t 
     return allocator; // Return the initialized arena allocator
 }
 
+/**
+ * \brief Allocates memory for a single element from the arena allocator.
+ *
+ * This function returns a pointer to a memory block of size `el_size` managed by the arena allocator.
+ * If the current chunk does not have enough space, a new chunk is allocated and added to the arena.
+ *
+ * \param arena Pointer to the arena allocator (`arena_allocator_t`).
+ * \return Pointer to the allocated memory block, or NULL if allocation fails or the arena is NULL.
+ *
+ * The returned memory is not zero-initialized. The arena allocator manages the memory and
+ * individual allocations cannot be freed; instead, the entire arena should be destroyed when done.
+ */
 static inline void *arena_malloc(arena_allocator_t *arena)
 {
     // Skip if the arena is NULL
@@ -147,5 +159,4 @@ static inline void *arena_malloc(arena_allocator_t *arena)
     // Return the pointer to the allocated memory
     return ptr;
 }
-
 #endif //FLUENT_LIBC_ARENA_LIBRARY_H
