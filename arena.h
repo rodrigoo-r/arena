@@ -46,6 +46,16 @@ typedef struct
     size_t chunk_els;    /**< Number of elements in each chunk */
 } arena_allocator_t;
 
+/**
+ * \brief Creates a new arena allocator.
+ *
+ * Allocates and initializes an arena allocator structure, which manages
+ * a vector of memory chunks for efficient allocation of fixed-size elements.
+ *
+ * \param chunk_els The number of elements per chunk.
+ * \param el_size The size of each element in bytes.
+ * \return Pointer to the initialized arena_allocator_t, or NULL on failure.
+ */
 static inline arena_allocator_t *arena_new(const size_t chunk_els, const size_t el_size)
 {
     // Allocate memory for the arena allocator
