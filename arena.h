@@ -179,11 +179,17 @@ static inline void reset_arena(arena_allocator_t *arena)
     }
 
     // Reset each chunk in the vector
-    for (size_t i = 0; i < arena->chunks->length; i++)
+    for (size_t i = 0; i < arena->chunks->length - 1; i++)
     {
-        arena_t *chunk = vec_get(arena->chunks, i);
-        chunk->used = 0; // Reset the used memory to 0
+        const arena_t *chunk = vec_get(arena->chunks, i);
+        free(chunk->memory); // Free the memory of the chunk
     }
+
+    // Get the last chunk in the vector
+    arena_t *last_chunk = vec_get(arena->chunks, arena->chunks->length - 1);
+
+    // Reset the used memory in the last chunk
+    last_chunk->used = 0;
 }
 
 #endif //FLUENT_LIBC_ARENA_LIBRARY_H
