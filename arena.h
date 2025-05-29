@@ -183,6 +183,7 @@ static inline void reset_arena(arena_allocator_t *arena)
     {
         const arena_t *chunk = vec_get(arena->chunks, i);
         free(chunk->memory); // Free the memory of the chunk
+        arena->chunks->length--; // Decrease the length of the vector
     }
 
     // Get the last chunk in the vector
