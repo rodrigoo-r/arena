@@ -92,6 +92,12 @@ typedef struct
     size_t used;       /**< Amount of memory currently used */
 } arena_t;
 
+// ==== VECTOR DEFINITION ===
+#ifndef FLUENT_LIBC_ARENA_VEC_DEFINED
+    DEFINE_VECTOR(arena_t *, arena); // Define a vector type for arena_t
+#   define FLUENT_LIBC_ARENA_VEC_DEFINED 1
+#endif
+
 /**
  * \brief Arena allocator managing a linked list of arena chunks.
  *
@@ -100,9 +106,9 @@ typedef struct
  */
 typedef struct
 {
-    vector_t *chunks;    /**< Vector of arena chunks */
-    size_t el_size;      /**< Size of each element in the arena */
-    size_t chunk_els;    /**< Number of elements in each chunk */
+    vector_arena_t *chunks;    /**< Vector of arena chunks */
+    size_t el_size;            /**< Size of each element in the arena */
+    size_t chunk_els;          /**< Number of elements in each chunk */
 } arena_allocator_t;
 
 /**
@@ -127,18 +133,15 @@ static inline arena_allocator_t *arena_new(const size_t chunk_els, const size_t 
     }
 
     // Initialize the arena allocator
-    vector_t *v = (vector_t *)malloc(sizeof(vector_t));
+    vector_arena_t *v = (vector_arena_t *)malloc(sizeof(vector_arena_t));
     if (!v)
     {
         free(allocator); // Free the allocator if vector allocation fails
         return NULL; // Return NULL
     }
 
-    // Initialize the vector with a capacity of 256 elements
-    // each of size el_size, and a growth factor of 1.5
-    // (Could use a linked list, but managing pointers is
-    // more expensive than using a vector)
-    vec_init(v, 30, el_size, 1.5);
+    // Initialize the vector of chunks
+    vec_arena_init(v, 30, 1.5);
 
     allocator->chunks = v; // Initialize the vector of chunks
     allocator->el_size = el_size; // Set the size of each element in the arena
@@ -172,7 +175,7 @@ static inline void *arena_malloc(arena_allocator_t *arena)
     if (arena->chunks->length > 0)
     {
         // Get the last chunk in the vector
-        const arena_t *last_chunk = vec_get(arena->chunks, arena->chunks->length - 1);
+        const arena_t *last_chunk = vec_arena_get(arena->chunks, arena->chunks->length - 1);
 
         // Check if there is enough space in the last chunk
         has_space = last_chunk->used + arena->el_size <= last_chunk->size;
@@ -205,11 +208,11 @@ static inline void *arena_malloc(arena_allocator_t *arena)
         new_chunk->used = 0; // Initialize the used memory to 0
 
         // Add the new chunk to the vector of chunks
-        vec_push(arena->chunks, new_chunk);
+        vec_arena_push(arena->chunks, new_chunk);
     }
 
     // Get the last chunk in the vector
-    arena_t *last_chunk = vec_get(arena->chunks, arena->chunks->length - 1);
+    arena_t *last_chunk = vec_arena_get(arena->chunks, arena->chunks->length - 1);
 
     // Return a pointer to the next available memory in the last chunk
     void *ptr = (char *)last_chunk->memory + last_chunk->used;
@@ -239,13 +242,13 @@ static inline void destroy_arena(arena_allocator_t *arena)
     // Free each chunk in the vector
     for (size_t i = 0; i < arena->chunks->length; i++)
     {
-        arena_t *chunk = vec_get(arena->chunks, i);
+        arena_t *chunk = vec_arena_get(arena->chunks, i);
         free(chunk->memory); // Free the memory of the chunk
         free(chunk); // Free the arena_t structure
     }
 
     // Free the vector of chunks
-    vec_destroy(arena->chunks, NULL);
+    vec_arena_destroy(arena->chunks, NULL);
 
     // Free the arena allocator itself
     free(arena);
